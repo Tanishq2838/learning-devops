@@ -1,0 +1,58 @@
+# Day 1 - Linux Filesystem & Navigation
+
+# LISTING FILES
+ls              # list files in current folder
+ls /            # list root filesystem
+ls -l           # detailed view (permissions, size, date)
+ls -a           # show hidden files
+ls -la          # detailed + hidden files combined
+ls -lt          # sort by time (newest first)
+ls -ltr         # sort by time (oldest first)
+ls -lr          # reverse order
+
+# NAVIGATION
+pwd             # show current location (full path)
+cd /path        # go to specific folder
+cd ..           # go one level up
+cd ~            # go to home directory
+cd -            # go back to previous directory
+
+# CREATING FILES & FOLDERS
+mkdir foldername          # create a folder
+mkdir -p a/b/c            # create nested folders in one shot
+touch file.txt            # create empty file
+touch f1.txt f2.txt f3.txt  # create multiple files at once
+
+# MOVING & RENAMING
+mv file.txt newname.txt   # rename a file
+mv file.txt /folder/      # move file to folder
+
+# DELETING
+rm file.txt               # delete a file
+rmdir foldername          # delete empty folder
+
+# READING FILES
+cat file.txt              # print file contents
+cat -n file.txt           # print with line numbers
+tac file.txt              # print in reverse (last line first)
+head file.txt             # show first 10 lines
+head -n 3 file.txt        # show first 3 lines
+tail file.txt             # show last 10 lines
+tail -n 3 file.txt        # show last 3 lines
+
+# WRITING TO FILES
+cat > file.txt            # write to file (overwrites everything)
+cat >> file.txt           # append to file (adds to bottom)
+echo "text" > file.txt   # write single line (overwrites)
+echo "text" >> file.txt  # append single line
+
+# GIT (first time setup)
+git init                          # initialise a new git repo
+git add .                         # stage all files
+git commit -m "message"           # commit with message
+git branch -M main                # rename branch to main
+git remote add origin <url>       # connect to GitHub repo
+git push -u origin main           # push to GitHub
+git pull origin main --rebase     # pull remote changes cleanly
+git status                        # see what's staged/unstaged
+git rebase --continue             # continue after resolving conflict
