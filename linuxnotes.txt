@@ -1,2 +1,0 @@
-Day 1 - Learning Linux File Systems
-Home Folder is /home/tanishq
