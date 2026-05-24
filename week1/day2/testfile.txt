@@ -1,0 +1,7 @@
+Hello
+This was the first time using nano editor
+But can rate after once using the vim editor as well
+Nano is the upgraded edition of pico
+Calling pico now will automatically raise nano 
+Current version of nano is 6.2
+Looks very comfortable

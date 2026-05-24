@@ -1,0 +1,112 @@
+# Day 2 - File Permissions, chown, nano, vim
+
+# READING PERMISSIONS
+# Permission string format: [filetype][owner][group][others]
+# Example: -rwxr-xr-x
+# - means file, d means directory
+# r = read (4), w = write (2), x = execute (1)
+# rwx = 7, rw- = 6, r-x = 5, r-- = 4, --- = 0
+
+# CHMOD - change file permissions
+chmod +x file          # add execute permission
+chmod -x file          # remove execute permission
+chmod +w file          # add write permission
+chmod -w file          # remove write permission
+chmod 755 file         # owner=rwx(7), group=r-x(5), others=r-x(5)
+chmod 644 file         # owner=rw-(6), group=r--(4), others=r--(4)
+chmod 600 file         # owner=rw-(6), group=---(0), others=---(0)
+chmod +wx file         # add both write and execute together
+
+# CHOWN - change file ownership
+ls -la file                        # see current owner and group
+sudo chown root:root file          # change owner and group to root
+sudo chown tanishq:tanishq file    # change back to your user
+# syntax: chown owner:group filename
+# needs sudo because changing ownership is an admin action
+
+# SHELL SCRIPT
+touch script.sh               # create a script file
+vim script.sh                 # open in vim to write the script
+chmod +x script.sh            # make it executable (mandatory before running)
+./script.sh                   # run the script
+# without chmod +x you get: Permission denied
+# #!/bin/bash must be the first line of every bash script
+
+# USEFUL SCRIPT SHORTCUTS INSIDE A SCRIPT
+$(whoami)    # returns current username
+$(date)      # returns current date and time
+$(pwd)       # returns current directory
+
+# NANO - simple terminal text editor
+nano filename          # open file in nano
+# inside nano:
+# Ctrl + O    save the file (write Out)
+# Ctrl + X    exit nano
+# Ctrl + K    cut entire line
+# Ctrl + U    paste line
+# Ctrl + W    search for text
+# Ctrl + G    open help
+
+# VIM - advanced terminal text editor
+vim filename           # open file in vim
+# vim has two modes:
+# Normal mode  - default when you open vim, used for commands
+# Insert mode  - for typing text
+# inside vim:
+# i            enter insert mode (now you can type)
+# Esc          go back to normal mode
+# :wq          save and quit (w=write, q=quit)
+# :q!          quit without saving (! means force)
+# dd           delete entire line (in normal mode)
+# u            undo last action (in normal mode)
+# /word        search for a word (in normal mode)
+
+
+# VIM - additional commands from vimtutor lessons 1-3
+
+# NAVIGATION (normal mode)
+h            # move left
+l            # move right
+j            # move down
+k            # move up
+w            # jump forward one word
+b            # jump backward one word
+0            # jump to start of line
+$            # jump to end of line
+gg           # jump to start of file
+G            # jump to end of file
+
+# DELETION (normal mode)
+x            # delete character under cursor
+dw           # delete from cursor to end of word
+d$           # delete from cursor to end of line
+dd           # delete entire line
+2dd          # delete 2 lines at once (any number works)
+
+# UNDO & REDO
+u            # undo last action
+Ctrl + r     # redo (undo the undo)
+
+# INSERT MODE OPTIONS
+i            # insert before cursor
+a            # insert after cursor
+A            # insert at end of line
+o            # open new line below and enter insert mode
+O            # open new line above and enter insert mode
+
+# COPY & PASTE
+yy           # copy (yank) entire line
+yw           # copy one word
+p            # paste after cursor
+P            # paste before cursor
+
+# CHANGE COMMAND
+cw           # delete word and enter insert mode (change word)
+c$           # delete from cursor to end of line and enter insert mode
+cc           # delete entire line and enter insert mode
+# change = delete + automatically puts you in insert mode
+# difference from delete: d just deletes, c deletes and lets you type immediately
+
+# REPLACE
+r            # replace single character under cursor
+R            # replace multiple characters (keep typing to keep replacing)
