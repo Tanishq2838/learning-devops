@@ -5,3 +5,4 @@ Nano is the upgraded edition of pico
 Calling pico now will automatically raise nano 
 Current version of nano is 6.2
 Looks very comfortable
+

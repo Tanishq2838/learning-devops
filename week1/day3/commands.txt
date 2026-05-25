@@ -1,0 +1,83 @@
+# Day 3 - Users, Groups, Sudo, Processes
+
+# USER INFORMATION
+whoami                        # prints your current username
+id                            # shows your user ID, group ID and all groups you belong to
+who                           # shows who is currently logged into the system
+w                             # shows who is logged in and what they are doing
+
+# /etc/passwd - stores all user information
+cat /etc/passwd               # view all users on the system
+grep tanishq /etc/passwd      # find a specific user's entry
+# format: username:x:UID:GID:comment:home_directory:shell
+# x means password is stored in /etc/shadow (encrypted)
+
+# CREATING & MANAGING USERS
+sudo useradd -m username      # create a new user (-m creates their home folder)
+sudo passwd username          # set or change password for a user
+sudo userdel username         # delete a user
+sudo userdel -r username      # delete a user and their home folder
+su - username                 # switch to another user
+exit                          # go back to your previous user
+
+# GROUPS
+groups                        # show all groups your current user belongs to
+groups username               # show all groups a specific user belongs to
+cat /etc/group                # view all groups on the system
+grep groupname /etc/group     # find a specific group's entry
+
+sudo groupadd groupname               # create a new group
+sudo usermod -aG groupname username   # add user to a group
+                                      # -a means append (don't remove from other groups)
+                                      # -G means supplementary groups
+sudo gpasswd -d username groupname    # remove a user from a group
+
+# OWNERSHIP
+sudo chown owner:group file      # change both owner and group of a file
+sudo chown :group file           # change group only (note the colon before group)
+sudo chown owner file            # change owner only
+sudo chown :dev-team /tmp/file   # real example - change group to dev-team
+
+# SUDO
+sudo command                  # run a single command as root (admin)
+sudo su                       # switch to root user completely (exit to go back)
+sudo cat /etc/sudoers         # view who has sudo access on the system
+sudo visudo                   # safely edit the sudoers file
+sudo usermod -aG sudo username  # give a user sudo access
+
+# difference between sudo and su:
+# sudo = run ONE command as root, immediately back to normal user
+# su   = switch TO another user completely until you type exit
+# never work permanently as root — one wrong command deletes everything
+
+# PROCESSES
+ps aux                        # show all running processes with details
+# columns: USER, PID, %CPU, %MEM, COMMAND
+# PID = Process ID, unique number assigned to every running process
+
+ps aux | grep processname     # find a specific process by name
+top                           # live process viewer, press q to quit
+htop                          # better live process viewer, press q to quit
+                              # F6 to sort, F9 to kill a process
+jobs                          # show background processes in current terminal
+
+# KILLING PROCESSES
+sleep 500 &                   # start a process in background (& sends it to background)
+kill PID                      # gracefully stop a process (please stop)
+kill -9 PID                   # force kill a process immediately (no questions asked)
+killall processname           # kill all processes with that name
+# use kill first, only use kill -9 if process refuses to stop
+
+# SYSTEM INFORMATION
+df -h                         # show disk space usage (-h = human readable MB/GB)
+du -sh /path/to/folder        # show size of a specific folder
+free -h                       # show RAM usage (total, used, free)
+uname -a                      # show system info (kernel version, architecture)
+uptime                        # show how long system has been running
+which python3                 # show where a program is installed
+whereis bash                  # show all locations related to a program
+
+# FILE PERMISSIONS REMINDER
+# 640 = owner:rw- group:r-- others:---
+# owner can read and write, group can only read, others have no access
+chmod 640 filename            # set these exact permissions
