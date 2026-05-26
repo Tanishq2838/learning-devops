@@ -18,7 +18,7 @@ Building in public — daily commits, real projects, no shortcuts.
 | Day 1 | Linux filesystem, navigation, file operations | ✅ |
 | Day 2 | File permissions, chmod, chown, vim, nano | ✅ |
 | Day 3 | Users, groups, sudo, processes, kill, system info | ✅ |
-| Day 4 | Pipes, redirection, grep, awk, sed | 🔄 |
+| Day 4 | Pipes, redirection, grep, awk, sed | ✅ |
 | Day 5 | Bash scripting — variables, conditionals, loops | 🔄 |
 | Day 6 | Bash scripting — functions, error handling | 🔄 |
 | Day 7 | Cron jobs, review, first project | 🔄 |
