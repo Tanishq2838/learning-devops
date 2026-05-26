@@ -1,0 +1,120 @@
+# Day 4 - Pipes, Redirection, Grep, Awk, Sed
+
+# STREAMS
+# every command has 3 streams:
+# 0 = stdin  (input going into a command)
+# 1 = stdout (normal output coming out)
+# 2 = stderr (error output coming out)
+
+# REDIRECTION
+>                              # redirect stdout to file (overwrites)
+>>                             # redirect stdout to file (appends)
+2>                             # redirect stderr to file
+2>>                            # redirect stderr to file (appends)
+2>&1                           # redirect stderr to same place as stdout
+> /dev/null                    # throw away stdout
+2> /dev/null                   # throw away stderr
+> /dev/null 2>&1               # throw away everything (stdout and stderr)
+
+# examples
+echo "Hello" > output.txt              # write to file (overwrites)
+echo "World" >> output.txt             # append to file
+ls /fakefolder 2> error.txt            # send error to file
+ls /fakefolder > all.txt 2>&1          # send both stdout and stderr to file
+ls /fakefolder 2> /dev/null            # discard error, show nothing
+ping -c 1 google.com > /dev/null 2>&1  # run silently, discard all output
+wc -l < server.log                     # take input FROM a file
+
+# /dev/null
+# special file that accepts anything and immediately discards it
+# used in cron jobs and scripts to suppress unwanted output
+# pattern: command > /dev/null 2>&1
+
+# PIPES
+# | takes stdout of one command and feeds it as stdin to the next
+# commands run simultaneously, data flows between them
+
+# basic pipe
+ps aux | grep bash                     # list processes, keep only bash ones
+cat server.log | wc -l                 # read file, count lines
+
+# chaining multiple pipes
+cat server.log | grep ERROR | wc -l   # read → filter errors → count
+ps aux | sort -k3 -rn | head -5       # processes → sort by CPU → top 5
+
+# SORT
+sort file.txt                          # sort lines alphabetically
+sort -r file.txt                       # sort in reverse
+sort -n file.txt                       # sort numerically
+sort -rn file.txt                      # sort numerically in reverse (biggest first)
+sort -k3 file.txt                      # sort by column 3
+sort -k3 -rn file.txt                  # sort by column 3 numerically in reverse
+
+# UNIQ
+uniq file.txt                          # remove consecutive duplicate lines
+uniq -c file.txt                       # count how many times each line appears
+# always sort before uniq so duplicates are next to each other
+
+# WC - word count
+wc -l file.txt                         # count lines
+wc -w file.txt                         # count words
+wc -c file.txt                         # count characters
+
+# CUT
+cut -d: -f1 /etc/passwd                # -d: delimiter is colon, -f1 means field 1
+cut -c1-10 server.log                  # characters 1 to 10 of each line
+
+# TR - translate/replace characters
+cat file | tr ' ' '\n'                 # replace spaces with newlines
+cat file | tr 'a-z' 'A-Z'             # convert to uppercase
+cat file | tr -d '0-9'                 # delete all digits (-d means delete)
+
+# GREP - search for patterns in text
+grep "ERROR" server.log                # find lines containing ERROR (case sensitive)
+grep -i "error" server.log             # -i = case insensitive search
+grep -v "INFO" server.log              # -v = inverse, show lines NOT containing INFO
+grep -n "ERROR" server.log             # -n = show line numbers with results
+grep -c "ERROR" server.log             # -c = count matching lines
+grep -r "ERROR" ~/devops-practice/     # -r = search recursively in all files in folder
+grep -E "ERROR|WARNING" server.log     # -E = extended regex, | means OR
+grep -A 2 "ERROR" server.log          # show 2 lines AFTER each match
+grep -B 2 "ERROR" server.log          # show 2 lines BEFORE each match
+grep -C 2 "ERROR" server.log          # show 2 lines BEFORE and AFTER each match
+
+# combining grep
+grep ERROR server.log | grep "192.168.1.10"   # chain greps to narrow down results
+
+# AWK - column based text processing
+# columns are separated by spaces by default
+# $1 = first column, $2 = second, $NF = last column
+
+awk '{print $1}' server.log            # print first column (date)
+awk '{print $2}' server.log            # print second column (time)
+awk '{print $3}' server.log            # print third column (log level)
+awk '{print $1, $3}' server.log        # print multiple columns
+awk '$3 == "ERROR" {print}' server.log # print lines where column 3 equals ERROR
+awk 'END {print NR}' server.log        # NR = total number of lines
+awk -F: '{print $1}' /etc/passwd       # -F: use colon as separator instead of space
+df -h | awk '{print $1, $5}'           # show filesystem name and usage %
+
+# awk length trick
+awk '{print length, $0}' file          # print character count then the full line
+
+# SED - find, replace, delete in text streams
+sed 's/ERROR/CRITICAL/g' server.log    # replace ERROR with CRITICAL (g = all occurrences)
+sed 's/INFO/DEBUG/' server.log         # replace only first occurrence per line (no g)
+sed -i 's/ERROR/CRITICAL/g' file      # -i = in place, modifies actual file (careful)
+sed '/WARNING/d' server.log            # delete lines containing WARNING (d = delete)
+sed -n '1,5p' server.log              # print lines 1 to 5 only
+sed -n '3p' server.log                # print only line 3
+sed 's/^/LOG: /' server.log           # add LOG: at start of every line (^ = line start)
+sed 's/$/ [END]/' server.log          # add [END] at end of every line ($ = line end)
+# always test sed without -i first to preview changes before saving
+
+# POWERFUL COMBINATIONS
+grep ERROR server.log | awk '{print $2}'              # time of every error
+cat server.log | awk '{print $3}' | sort | uniq -c   # count each log level
+grep ERROR server.log | sed 's/ERROR/ALERT/g'         # find errors and relabel them
+cat server.log | awk '{print length, $0}' | sort -rn | head -5  # top 5 longest lines
+ps aux | sort -k3 -rn | head -10                      # top 10 CPU eating processes
+cat /etc/passwd | cut -d: -f1 | sort                  # all usernames sorted
