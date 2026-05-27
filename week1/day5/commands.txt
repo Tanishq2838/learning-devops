@@ -1,0 +1,179 @@
+# Day 5 - Bash Scripting: Variables, Conditionals, Loops
+
+# VARIABLES
+# no spaces around = when defining a variable
+NAME="Tanishq"                        # string variable
+AGE=21                                # number variable
+echo $NAME                            # access variable with $ prefix
+echo "My name is $NAME"              # use inside a string
+echo "Hello ${NAME}!"                # curly braces when next to other text
+echo "${NAME}islearning"             # without braces it looks for NAMEislearning
+
+# command substitution — store output of a command in a variable
+CURRENT_DATE=$(date)                  # store date output
+CURRENT_USER=$(whoami)               # store current username
+DISK_USAGE=$(df -h / | awk 'NR==2 {print $5}')  # store disk usage %
+
+readonly MAX_RETRIES=3               # readonly variable — cannot be changed later
+unset MY_VAR                         # delete a variable completely
+
+# SPECIAL VARIABLES — memorise these
+$0      # name of the script itself
+$1      # first argument passed to script
+$2      # second argument passed to script
+$#      # total number of arguments passed
+$@      # all arguments as separate words
+$?      # exit code of last command (0=success, non-zero=failure)
+$$      # PID of the currently running script
+$USER   # current username (built-in environment variable)
+$HOME   # home directory path
+$PATH   # directories where Linux looks for commands
+
+# USER INPUT
+read -p "Enter your name: " NAME          # prompt user for input
+read -sp "Enter password: " PASSWORD      # silent input (not shown on screen)
+read -t 5 -p "Enter (5 sec timeout): " INPUT  # timeout after 5 seconds
+INPUT=${INPUT:-"default value"}           # use default if variable is empty
+
+# CONDITIONALS
+# basic syntax:
+# if [ condition ]; then
+#     commands
+# elif [ condition ]; then
+#     commands
+# else
+#     commands
+# fi
+
+# FILE CHECKS
+[ -f file ]     # true if file exists and is a regular file
+[ -d dir ]      # true if directory exists
+[ -e path ]     # true if path exists (file or directory)
+[ -x file ]     # true if file is executable
+[ -r file ]     # true if file is readable
+[ -w file ]     # true if file is writable
+[ -s file ]     # true if file exists and is not empty
+[ ! -f file ]   # true if file does NOT exist (! = not)
+
+# STRING CHECKS
+[ "$a" = "$b" ]     # true if strings are equal
+[ "$a" != "$b" ]    # true if strings are not equal
+[ -z "$var" ]       # true if string is empty (zero length)
+[ -n "$var" ]       # true if string is not empty (non-zero length)
+
+# NUMBER CHECKS
+[ $a -eq $b ]    # equal
+[ $a -ne $b ]    # not equal
+[ $a -gt $b ]    # greater than
+[ $a -lt $b ]    # less than
+[ $a -ge $b ]    # greater than or equal
+[ $a -le $b ]    # less than or equal
+
+# exit codes
+exit 0           # exit script successfully
+exit 1           # exit script with error
+# always exit with 1 when something goes wrong in a script
+
+# FOR LOOPS
+for item in one two three; do      # loop over a list
+    echo $item
+done
+
+for i in {1..10}; do              # loop over a range
+    echo $i
+done
+
+for i in {0..20..5}; do          # loop with step (0, 5, 10, 15, 20)
+    echo $i
+done
+
+for file in /path/*.log; do       # loop over files matching a pattern
+    echo "File: $file"
+    echo "Lines: $(wc -l < $file)"
+done
+
+for user in $(cat /etc/passwd | cut -d: -f1); do  # loop over command output
+    echo "User: $user"
+done
+
+# WHILE LOOPS
+COUNT=1
+while [ $COUNT -le 5 ]; do        # runs while condition is true
+    echo "Count: $COUNT"
+    COUNT=$((COUNT + 1))
+done
+
+while true; do                     # infinite loop
+    read -p "Type quit to exit: " INPUT
+    if [ "$INPUT" = "quit" ]; then
+        break                      # exit the loop immediately
+    fi
+    echo "You typed: $INPUT"
+done
+
+# UNTIL LOOP
+COUNT=1
+until [ $COUNT -gt 5 ]; do        # opposite of while, runs UNTIL condition is true
+    echo $COUNT
+    COUNT=$((COUNT + 1))
+done
+
+# LOOP CONTROL
+break       # exit the loop immediately
+continue    # skip current iteration and go to next one
+
+# example of break
+for i in {1..10}; do
+    if [ $i -eq 5 ]; then
+        break                      # stops at 5, prints 1 2 3 4
+    fi
+    echo $i
+done
+
+# example of continue
+for i in {1..10}; do
+    if [ $i -eq 5 ]; then
+        continue                   # skips 5, prints 1 2 3 4 6 7 8 9 10
+    fi
+    echo $i
+done
+
+# ARITHMETIC
+echo $((5 + 3))        # addition
+echo $((10 - 4))       # subtraction
+echo $((6 * 7))        # multiplication
+echo $((15 / 3))       # division
+echo $((17 % 5))       # modulo (remainder after division)
+COUNT=$((COUNT + 1))   # increment
+COUNT=$((COUNT - 1))   # decrement
+((COUNT++))            # shorter increment
+((COUNT--))            # shorter decrement
+# arithmetic always needs double brackets (( ))
+
+# SCRIPT BEST PRACTICES
+#!/bin/bash             # always first line — tells system to use bash
+set -e                  # exit script immediately if any command fails
+set -u                  # exit if undefined variable is used
+2>/dev/null || echo 0   # handle errors gracefully in pipes
+
+# COMMON PATTERNS USED TODAY
+# check if argument was provided
+if [ -z "$1" ]; then
+    echo "Usage: ./script.sh <argument>"
+    exit 1
+fi
+
+# check if file exists before using it
+if [ ! -f "$FILE" ]; then
+    echo "Error: $FILE not found"
+    exit 1
+fi
+
+# count occurrences in a log file
+COUNT=$(grep -c "ERROR" $LOG_FILE 2>/dev/null || echo 0)
+
+# loop through log levels and count each
+for level in INFO ERROR WARNING; do
+    COUNT=$(grep -c "$level" $LOG_FILE 2>/dev/null || echo 0)
+    echo "$level: $COUNT"
+done

@@ -1,0 +1,8 @@
+echo "File name $0"
+echo "First Argument Passed $1"
+echo "Second Argument Passed $2"
+echo "Arguments Passed as words $@"
+echo "Total Arguments : $#"
+echo "Current User $USER"
+echo "Home Directory $HOME"
+echo "Last Exit Code: $?"
