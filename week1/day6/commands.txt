@@ -1,0 +1,147 @@
+# Day 6 - Functions, Error Handling, Complete Scripts
+
+# FUNCTIONS
+# syntax for defining a function
+function_name() {
+    # code here
+}
+# call a function simply by its name
+function_name
+
+# function with arguments
+# arguments inside functions use $1, $2 just like scripts
+greet_user() {
+    echo "Hello $1"
+}
+greet_user "Tanishq"    # passing argument when calling
+
+# FUNCTION RETURN VALUES
+# method 1 — echo and capture (use this for returning data)
+get_disk_usage() {
+    df -h / | awk 'NR==2 {print $5}'    # function echoes the value
+}
+DISK=$(get_disk_usage)    # capture output with $()
+echo "Disk: $DISK"
+
+# method 2 — return exit code (use this for success/failure)
+check_file() {
+    if [ -f "$1" ]; then
+        return 0    # 0 = success
+    else
+        return 1    # 1 = failure
+    fi
+}
+if check_file "server.log"; then
+    echo "File found"
+else
+    echo "File not found"
+fi
+
+# LOCAL VARIABLES
+# without local — variable leaks outside function and causes bugs
+# with local — variable stays safely inside the function
+good_function() {
+    local NAME="inside"    # local keyword keeps it inside function only
+    echo $NAME
+}
+# always use local for variables inside functions
+
+# CHECKING IF A COMMAND EXISTS
+command_exists() {
+    local CMD=$1
+    if command -v "$CMD" > /dev/null 2>&1; then
+        return 0    # command found
+    else
+        return 1    # command not found
+    fi
+}
+if command_exists "git"; then echo "git installed"; fi
+
+# ERROR HANDLING
+set -e              # exit script immediately if any command fails
+set -u              # treat undefined variables as errors — prevents typo bugs
+set -o pipefail     # catch errors inside pipes (without this pipe errors are ignored)
+# put all three at top of every professional script
+
+# WHY pipefail MATTERS
+# without pipefail:
+# cat fakefile.txt | grep "x"
+# echo $?    shows 0 (success) even though cat failed — dangerous
+# with pipefail:
+# the error is caught and script exits — safe
+
+# TRAP — run code automatically when something happens
+trap cleanup EXIT       # run cleanup() function when script exits for any reason
+trap handle_error ERR   # run handle_error() when any command fails
+# $LINENO — special variable, gives the line number where error occurred
+# $$ — PID of current script, used to create unique temp filenames like /tmp/file_$$.txt
+
+# common cleanup pattern
+cleanup() {
+    rm -f /tmp/tempfile_$$.txt    # delete temp files on exit
+}
+trap cleanup EXIT
+
+# MANUAL ERROR CHECKING
+# method 1 — check exit code with $?
+cp file.txt /backup/
+if [ $? -ne 0 ]; then
+    echo "Copy failed"
+    exit 1
+fi
+
+# method 2 — || (OR operator)
+# runs right side only if left side FAILS
+mkdir /tmp/logs || echo "Failed to create directory"
+
+# method 3 — && (AND operator)
+# runs right side only if left side SUCCEEDS
+mkdir /tmp/logs && echo "Directory created"
+
+# method 4 — combining for clean one-liner error handling
+cp fakefile.txt /tmp/ || { echo "Copy failed, exiting"; exit 1; }
+
+# || and && summary
+# command1 || command2   — command2 runs if command1 FAILS
+# command1 && command2   — command2 runs if command1 SUCCEEDS
+# cmd && echo "ok" || echo "failed"  — clean success/failure pattern
+
+# TEE — write to screen and file simultaneously
+echo "message" | tee -a logfile.txt
+# tee reads stdin, writes to stdout (screen) AND to the file
+# -a means append (without -a it overwrites)
+# used in logging functions to show output and save it at the same time
+
+# LOGGING FUNCTION PATTERN
+log() {
+    local LEVEL=$1
+    local MESSAGE=$2
+    local TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$TIMESTAMP] [$LEVEL] $MESSAGE" | tee -a "$LOG_FILE"
+}
+log "INFO" "Script started"
+log "WARNING" "Disk usage high"
+log "ERROR" "Service crashed"
+# date format: +%Y-%m-%d %H:%M:%S gives 2026-05-28 14:30:00
+
+# CLEARING A FILE
+> "$LOG_FILE"    # redirect nothing into file — empties it without deleting
+# used at start of script to clear old logs before writing new ones
+
+# PGREP — check if a process is running by name
+pgrep -x "bash"              # -x means exact match on process name
+pgrep -x "bash" > /dev/null 2>&1    # silently check
+if pgrep -x "ssh" > /dev/null 2>&1; then
+    echo "ssh is running"
+fi
+
+# COMPLETE SCRIPT STRUCTURE — professional pattern
+#!/bin/bash
+set -e
+set -o pipefail
+# 1. configuration variables at top
+# 2. helper functions (log, print_header)
+# 3. task functions (check_disk, check_memory)
+# 4. main() function that calls everything
+# 5. call main at bottom
+main
