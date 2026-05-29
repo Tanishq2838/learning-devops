@@ -21,7 +21,7 @@ Building in public — daily commits, real projects, no shortcuts.
 | Day 4 | Pipes, redirection, grep, awk, sed | ✅ |
 | Day 5 | Bash scripting — variables, conditionals, loops | ✅ |
 | Day 6 | Bash scripting — functions, error handling | ✅ |
-| Day 7 | Cron jobs, review, first project | 🔄 |
+| Day 7 | Cron jobs, review, first project | ✅ |
 
 ## Projects
 - Project 1 — Disk Monitor Script (Bash) — coming Week 2
