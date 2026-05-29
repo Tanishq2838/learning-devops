@@ -1,0 +1,105 @@
+# Day 7 - Cron Jobs, Scheduling, Project 1
+
+# CRON — schedule tasks to run automatically
+# cron is a background service that checks every minute for scheduled jobs
+
+# CRONTAB COMMANDS
+crontab -e    # open your crontab file for editing (use nano when asked)
+crontab -l    # list all your current cron jobs
+crontab -r    # remove ALL your cron jobs (careful — no confirmation asked)
+
+# CRON SYNTAX
+# * * * * * command
+# │ │ │ │ │
+# │ │ │ │ └── day of week (0-7, both 0 and 7 mean Sunday)
+# │ │ │ └──── month (1-12)
+# │ │ └────── day of month (1-31)
+# │ └──────── hour (0-23)
+# └────────── minute (0-59)
+# * means every — every minute, every hour, every day etc
+
+# CRON EXAMPLES
+* * * * *        # every single minute
+0 * * * *        # every hour at minute 0
+0 8 * * *        # every day at 8:00 AM
+0 8 * * 1        # every Monday at 8:00 AM
+0 8 1 * *        # first day of every month at 8:00 AM
+*/5 * * * *      # every 5 minutes
+0 */2 * * *      # every 2 hours
+0 8,20 * * *     # every day at 8 AM and 8 PM
+0 8-18 * * *     # every hour between 8 AM and 6 PM
+0 8 * * 1-5      # every weekday Monday to Friday at 8 AM
+0 0 * * 0        # every Sunday at midnight
+
+# CRON SHORTCUT KEYWORDS
+@reboot          # run once when system starts up
+@hourly          # same as 0 * * * *
+@daily           # same as 0 0 * * *
+@weekly          # same as 0 0 * * 0
+@monthly         # same as 0 0 1 * *
+
+# CRON IMPORTANT RULES
+# 1. always use full paths — cron has no PATH like your terminal
+#    wrong:  ./system_health.sh
+#    correct: /home/tanishq/devops-practice/week1/day6/system_health.sh
+
+# 2. always redirect output to a log file — cron runs silently
+#    wrong:  0 8 * * * /home/tanishq/myscript.sh
+#    correct: 0 8 * * * /home/tanishq/myscript.sh >> /home/tanishq/logs/script.log 2>&1
+
+# 3. use full paths for commands inside scripts called by cron
+#    wrong:  df -h
+#    correct: /bin/df -h
+
+# SYSTEM WIDE CRON DIRECTORIES
+ls /etc/cron.daily/     # scripts here run automatically every day
+ls /etc/cron.weekly/    # scripts here run automatically every week
+ls /etc/cron.hourly/    # scripts here run automatically every hour
+ls /etc/cron.monthly/   # scripts here run automatically every month
+
+# add a script to run daily system wide
+sudo cp myscript.sh /etc/cron.daily/
+sudo chmod +x /etc/cron.daily/myscript.sh
+
+# CHECK CRON SERVICE
+pgrep cron                      # check if cron process is running
+sudo systemctl status cron      # detailed cron service status
+sudo systemctl start cron       # start cron if not running
+sudo systemctl enable cron      # make cron start automatically on boot
+
+# CRON LOGS — see what cron ran and when
+grep CRON /var/log/syslog | tail -20     # last 20 cron executions
+sudo tail -f /var/log/syslog | grep CRON # watch cron logs live
+
+# COLOURS IN BASH SCRIPTS
+# colour codes for terminal output
+RED='\033[0;31m'      # red text
+YELLOW='\033[1;33m'   # yellow text
+GREEN='\033[0;32m'    # green text
+NC='\033[0m'          # no colour — resets back to normal
+
+# using colours with echo -e (-e enables escape sequences)
+echo -e "${GREEN}This is green${NC}"
+echo -e "${YELLOW}This is yellow${NC}"
+echo -e "${RED}This is red${NC}"
+# always end with ${NC} to reset colour, otherwise terminal stays coloured
+
+# LOG ROTATION
+# prevent log files from growing forever
+MAX_LOG_LINES=1000
+LINES=$(wc -l < "$LOG_FILE")
+if [ "$LINES" -gt "$MAX_LOG_LINES" ]; then
+    tail -500 "$LOG_FILE" > "${LOG_FILE}.tmp"   # keep last 500 lines
+    mv "${LOG_FILE}.tmp" "$LOG_FILE"             # replace original
+fi
+
+# USEFUL PATTERNS FROM PROJECT 1
+df -h | awk 'NR==2 {print $5}' | tr -d '%'    # get disk usage as plain number
+df -h | awk 'NR==2 {print $4}'                 # get available disk space
+free -m | awk 'NR==2 {print $2}'               # total RAM in MB
+free -m | awk 'NR==2 {print $3}'               # used RAM in MB
+uptime | awk -F'load average:' '{print $2}'    # get load average
+pgrep -x "processname" > /dev/null 2>&1        # silently check if process running
+wc -l < "$LOG_FILE"                            # count lines in log file
+tail -500 "$LOG_FILE" > "${LOG_FILE}.tmp"      # keep last 500 lines of log
+> "$LOG_FILE"                                  # empty a log file without deleting it

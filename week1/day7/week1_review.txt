@@ -1,0 +1,77 @@
+# Week 1 Review
+
+1. What does ls -la show that ls -l does not?
+Answer: -la includes hidden files (files starting with .) in the listing
+
+2. What is the difference between absolute and relative paths?
+Answer: absolute path starts from root / and works from anywhere
+        relative path starts from your current location
+
+3. What does chmod 750 mean — who can do what?
+Answer: owner = rwx (7) full access
+        group = r-x (5) read and execute only
+        others = --- (0) no access at all
+
+4. What is the difference between chown and chmod?
+Answer: chown changes WHO owns the file (the owner and group)
+        chmod changes WHAT the owner/group/others can do with it (permissions)
+
+5. What command shows all running processes?
+Answer: ps aux
+
+6. What is the difference between kill and kill -9?
+Answer: kill sends a graceful stop signal — process can clean up before stopping
+        kill -9 force kills immediately — no cleanup, no questions asked
+
+7. What does grep -v do?
+Answer: inverse search — shows lines that do NOT contain the pattern
+
+8. What does awk '{print $3}' do?
+Answer: prints the third column of each line (columns separated by spaces)
+
+9. What is the difference between > and >>?
+Answer: > overwrites the file completely with new content
+        >> appends new content to the end of existing file
+
+10. What does 2>&1 mean?
+Answer: redirect stderr (stream 2) to the same place as stdout (stream 1)
+        used to capture both normal output and errors in the same place
+
+11. What does set -e do?
+Answer: exits the script immediately if any command fails
+        prevents script from continuing after an error
+
+12. What is the difference between || and &&?
+Answer: || runs the right side only if the left side FAILS (OR)
+        && runs the right side only if the left side SUCCEEDS (AND)
+
+13. What does trap cleanup EXIT do?
+Answer: registers cleanup as a trap function
+        cleanup() runs automatically every time the script exits
+        whether it exits successfully, fails, or is interrupted
+
+14. What does tee -a do?
+Answer: reads from stdin and writes to both screen and a file simultaneously
+        -a means append to file instead of overwriting it
+
+15. Write the cron syntax for: every day at 9 AM
+Answer: 0 9 * * *
+
+16. Write the cron syntax for: every 15 minutes
+Answer: */15 * * * *
+
+17. What does $? give you?
+Answer: the exit code of the last command that ran
+        0 means success, any non-zero number means failure
+
+18. What is the difference between return and echo in a function?
+Answer: return sends an exit code (0-255) — used for success/failure signalling
+        echo outputs data — captured with $() to get actual values from a function
+
+19. What does set -o pipefail do?
+Answer: makes the entire pipe fail if any command in the pipe fails
+        without it, pipe errors are silently ignored
+
+20. What does local do inside a function?
+Answer: keeps the variable scoped inside the function only
+        prevents the function from accidentally overwriting variables outside it

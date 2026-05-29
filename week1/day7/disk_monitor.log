@@ -1,0 +1,37 @@
+[2026-05-29 12:55:22] [INFO] ==== Disk Monitor Started ====
+[2026-05-29 12:55:22] [INFO] Threshold : 
+[2026-05-29 12:55:22] [INFO] Hostname : Legion5
+[2026-05-29 12:56:39] [INFO] ==== Disk Monitor Started ====
+[2026-05-29 12:56:39] [INFO] Threshold : 
+[2026-05-29 12:56:39] [INFO] Hostname : Legion5
+[2026-05-29 12:56:39] [INFO] Checking filesystems...
+[2026-05-29 12:56:39] [INFO] === Check complete : all filesystems OK ===
+[2026-05-29 12:56:39] [INFO] Log saved to : /home/tanishq/devops-practice/week1/day7/disk_monitor.log
+[2026-05-29 12:58:57] [INFO] ==== Disk Monitor Started ====
+[2026-05-29 12:58:57] [INFO] Threshold : 80
+[2026-05-29 12:58:57] [INFO] Hostname : Legion5
+[2026-05-29 12:58:57] [INFO] Checking filesystems...
+[2026-05-29 12:59:56] [INFO] ==== Disk Monitor Started ====
+[2026-05-29 12:59:56] [INFO] Threshold : 80
+[2026-05-29 12:59:56] [INFO] Hostname : Legion5
+[2026-05-29 12:59:56] [INFO] Checking filesystems...
+[2026-05-29 12:59:56] [INFO] OK: /usr/lib/modules/6.6.87.2-microsoft-standard-WSL2 is at 0% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /mnt/wsl is at 1% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /usr/lib/wsl/drivers is at 30% (670G of 953G remaining)
+[2026-05-29 12:59:56] [INFO] OK: / is at 1% (952G of 1007G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /mnt/wslg is at 1% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /usr/lib/wsl/lib is at 0% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /init is at 1% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /run is at 1% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /run/lock is at 0% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /run/shm is at 0% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /mnt/wslg/versions.txt is at 1% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /mnt/wslg/doc is at 1% (3.4G of 3.4G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /mnt/c is at 30% (670G of 953G remaining)
+[2026-05-29 12:59:56] [INFO] OK: /mnt/d is at 19% (778G of 954G remaining)
+[2026-05-29 12:59:56] [WARNING] DISK ALERT: /snap/core20/2866 is at 100% (0 of 64M remaining)
+[2026-05-29 12:59:56] [WARNING] DISK ALERT: /snap/core20/2769 is at 100% (0 of 64M remaining)
+[2026-05-29 12:59:56] [WARNING] DISK ALERT: /snap/lxd/36554 is at 100% (0 of 92M remaining)
+[2026-05-29 12:59:56] [WARNING] DISK ALERT: /snap/lxd/38688 is at 100% (0 of 92M remaining)
+[2026-05-29 12:59:56] [WARNING] DISK ALERT: /snap/snapd/26382 is at 100% (0 of 49M remaining)
+[2026-05-29 12:59:56] [WARNING] DISK ALERT: /snap/snapd/26865 is at 100% (0 of 50M remaining)
