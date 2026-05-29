@@ -23,8 +23,19 @@ Building in public — daily commits, real projects, no shortcuts.
 | Day 6 | Bash scripting — functions, error handling | ✅ |
 | Day 7 | Cron jobs, review, first project | ✅ |
 
+### Week 2 — Networking Fundamentals
+| Day | Topic | Status |
+|-----|-------|--------|
+| Day 8  | IP addresses, DNS, networking commands | 🔄 |
+| Day 9  | TCP/IP, ports, HTTP deep dive | 🔄 |
+| Day 10 | SSH deep dive, keys, config | 🔄 |
+| Day 11 | Firewalls, ufw, Linux networking | 🔄 |
+| Day 12 | Python + networking, requests library | 🔄 |
+| Day 13 | Project 2 — Log Analyser build day | 🔄 |
+| Day 14 | Week 2 review + polish | 🔄 |
+
 ## Projects
-- Project 1 — Disk Monitor Script (Bash) — coming Week 2
+- [Project 1 — Disk Monitor](week1/day7/disk_monitor.sh) ✅ — Bash script that monitors disk usage, logs warnings, auto log rotation, colour output, runs via cron
 - Project 2 — Log Analyser (Python) — coming Week 5
 - Project 3 — FastAPI app containerised with Docker — coming Week 6
 
