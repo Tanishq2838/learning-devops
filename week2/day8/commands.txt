@@ -1,0 +1,159 @@
+# Day 8 - Networking Fundamentals, IP Addresses, DNS, Networking Commands
+
+# HOW THE INTERNET WORKS — full request lifecycle when you type google.com
+# 1. Browser checks its own cache
+# 2. OS checks /etc/hosts file for manual entries
+# 3. OS asks DNS resolver (usually your router)
+# 4. Router asks ISP's DNS server
+# 5. ISP DNS asks Root DNS server — who handles .com?
+# 6. Root server points to .com TLD server
+# 7. TLD server points to Google's authoritative DNS server
+# 8. Google's DNS returns the IP address
+# 9. Browser opens TCP connection to that IP on port 443
+# 10. TLS handshake — connection encrypted
+# 11. Browser sends HTTP GET request
+# 12. Server sends back HTML
+# 13. Browser renders the page
+
+# IP ADDRESSES
+# IPv4 format: 4 numbers separated by dots, each 0-255
+# example: 192.168.1.105
+
+# SPECIAL IP ADDRESSES — memorise these
+# 127.0.0.1     localhost — your own machine
+# 0.0.0.0       all interfaces on this machine
+# 192.168.x.x   private network (home/office)
+# 10.x.x.x      private network (common in companies)
+# 172.16.x.x    private network
+# 8.8.8.8       Google's public DNS server
+# 1.1.1.1       Cloudflare's public DNS server
+
+# public IP  — your router's IP facing the internet, world can reach this
+# private IP — only works inside local network, nobody outside can reach directly
+
+# SUBNETS AND CIDR
+# 192.168.1.0/24 means:
+# /24 = first 24 bits are network, last 8 bits are for hosts
+# /24 = 256 total addresses (192.168.1.0 to 192.168.1.255)
+# /16 = 65536 total addresses
+# you will see this constantly in AWS when creating VPCs
+
+# IP COMMANDS
+ip addr                    # see all network interfaces and their IPs
+ip addr show               # same as above
+hostname -I                # show just your private IP address
+curl ifconfig.me           # show your public IP address
+curl icanhazip.com         # another way to get public IP
+ip route                   # show routing table (how packets are sent)
+arp -a                     # ARP table — IP to MAC address mapping on local network
+
+# DNS — Domain Name System
+# translates domain names to IP addresses
+# checked AFTER /etc/hosts file
+
+# DNS RECORD TYPES — memorise these
+# A      — domain to IPv4 address (google.com → 142.250.192.46)
+# AAAA   — domain to IPv6 address
+# CNAME  — domain to another domain (www.google.com → google.com)
+# MX     — mail server for the domain
+# TXT    — text info, used for domain verification and SPF records
+# NS     — nameservers — who handles DNS for this domain
+
+# DNS COMMANDS
+nslookup google.com                  # basic DNS lookup
+nslookup github.com                  # lookup any domain
+dig google.com                       # detailed DNS lookup
+dig google.com A                     # only A records (IPv4 address)
+dig google.com MX                    # mail server records
+dig google.com NS                    # nameserver records
+dig google.com TXT                   # text records
+dig google.com +trace                # trace full DNS path from root to answer
+dig -x 8.8.8.8                       # reverse DNS — IP to domain name
+nslookup 8.8.8.8                     # reverse DNS with nslookup
+dig @8.8.8.8 google.com              # ask Google's DNS server specifically
+dig @1.1.1.1 google.com              # ask Cloudflare's DNS server specifically
+dig google.com | grep "Query time"   # check DNS resolution time
+
+# /etc/hosts FILE
+cat /etc/hosts                       # view local DNS overrides
+# format: IP_ADDRESS   domain_name
+# 127.0.0.1   localhost  — this is why localhost always works
+# checked BEFORE DNS — you can override any domain here
+# sudo nano /etc/hosts to add entries
+# add 127.0.0.1 facebook.com to block facebook on your machine
+
+# DNS CONFIGURATION
+cat /etc/resolv.conf                 # see which DNS server your machine uses
+resolvectl status                    # detailed DNS info per network interface
+sudo systemctl restart systemd-resolved   # flush DNS cache
+
+# PING — test if a host is reachable
+ping google.com                      # ping continuously until Ctrl+C
+ping -c 4 google.com                 # ping exactly 4 times
+ping -c 4 8.8.8.8                    # ping by IP address
+ping 127.0.0.1                       # ping yourself (always works)
+ping localhost                       # same as pinging 127.0.0.1
+# output: time=12.5ms is round trip time (lower is better)
+# 0% packet loss = all packets arrived
+# 100% packet loss = host unreachable
+
+# TRACEROUTE — see every hop between you and destination
+sudo apt install traceroute -y
+traceroute google.com                # show every router packet passes through
+traceroute 8.8.8.8
+# each line = one router (hop) your packet goes through
+# * * * means that router blocks traceroute packets
+
+# CURL — make HTTP requests from terminal
+curl google.com                      # get HTTP response body
+curl https://google.com              # HTTPS request
+curl -I https://google.com           # headers only, no body
+curl -v https://google.com           # verbose — see full request and response
+curl ifconfig.me                     # get your public IP
+curl https://httpbin.org/get         # test GET request
+curl -X POST https://httpbin.org/post \
+     -H "Content-Type: application/json" \
+     -d '{"name":"tanishq"}'         # POST request with JSON body
+curl -o output.html https://google.com   # save response to a file
+curl -s https://api.github.com/users/Tanishq2838   # -s silent, no progress bar
+
+# WGET — download files
+wget https://example.com/file.txt    # download a file
+wget -O myfile.txt https://example.com   # save with custom filename
+wget -q https://example.com         # quiet mode, no output
+
+# SS and NETSTAT — see network connections and listening ports
+sudo apt install net-tools -y
+netstat -tuln                        # show all listening ports
+ss -tuln                             # modern replacement for netstat
+ss -tulnp                            # also show which process owns each port
+# columns: Proto, Local Address:Port, State
+# 0.0.0.0:22 means listening for SSH on all interfaces
+
+# NMAP — scan ports
+sudo apt install nmap -y
+nmap localhost                       # scan your own machine
+nmap -p 22,80,443 google.com        # check specific ports on a host
+nmap -p 1-1000 localhost            # scan first 1000 ports
+# open = service running and accepting connections
+# closed = nothing listening there
+
+# NC (NETCAT) — test port connectivity
+nc -zv google.com 80                 # test if port 80 is open
+nc -zv google.com 443               # test HTTPS port
+nc -zv localhost 22                  # test SSH port on your machine
+# -z = scan mode, -v = verbose
+# Connection succeeded = port is open
+# Connection refused = port is closed
+
+# PORTS TO MEMORISE — used every day in AWS security groups
+# 22    SSH
+# 80    HTTP
+# 443   HTTPS
+# 3306  MySQL
+# 5432  PostgreSQL
+# 6379  Redis
+# 27017 MongoDB
+# 8080  Common dev/app server
+# 3000  Node.js apps
+# 8000  Python/FastAPI apps
