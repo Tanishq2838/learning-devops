@@ -27,7 +27,7 @@ Building in public — daily commits, real projects, no shortcuts.
 | Day | Topic | Status |
 |-----|-------|--------|
 | Day 8  | IP addresses, DNS, networking commands | ✅ |
-| Day 9  | TCP/IP, ports, HTTP deep dive | 🔄 |
+| Day 9  | TCP/IP, ports, HTTP deep dive | ✅ |
 | Day 10 | SSH deep dive, keys, config | 🔄 |
 | Day 11 | Firewalls, ufw, Linux networking | 🔄 |
 | Day 12 | Python + networking, requests library | 🔄 |
