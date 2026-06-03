@@ -1,0 +1,175 @@
+# Day 9 - TCP/IP, Ports, HTTP Deep Dive
+
+# TCP vs UDP
+# TCP (Transmission Control Protocol)
+# - guarantees delivery — lost packets are detected and resent
+# - guarantees order — packets arrive in the order they were sent
+# - guarantees no corruption — bad packets are discarded
+# - slower because of all this checking
+# - used for: HTTP, HTTPS, SSH, FTP, email — anything needing reliability
+
+# UDP (User Datagram Protocol)
+# - no guaranteed delivery — packets can be lost, nobody cares
+# - no guaranteed order — packets can arrive out of order
+# - no connection setup — just sends data immediately
+# - much faster because it skips all checking
+# - used for: video streaming, online games, VoIP, DNS — anything needing speed
+
+# TCP 3-WAY HANDSHAKE — how every TCP connection starts
+# Client sends SYN (hello, I want to connect)
+# Server replies SYN-ACK (hello back, I'm ready)
+# Client sends ACK (ok, let's talk)
+# Connection is now established
+# This happens every time you visit a website, SSH into a server, etc
+
+# PORTS
+# a number (0-65535) that identifies a specific service on a machine
+# think of IP as the building address, port as the apartment number
+# 0-1023     well-known ports (require sudo to use)
+# 1024-49151 registered ports (apps can use freely)
+# 49152-65535 dynamic/private ports (assigned temporarily)
+
+# PORTS TO KNOW COLD
+# 22    SSH       — remote shell access
+# 80    HTTP      — web traffic unencrypted
+# 443   HTTPS     — web traffic encrypted
+# 53    DNS       — domain name resolution (TCP and UDP)
+# 3306  MySQL     — database
+# 5432  PostgreSQL— database
+# 6379  Redis     — cache
+# 27017 MongoDB   — NoSQL database
+# 8080  Alt HTTP  — dev servers and proxies
+# 3000  Node.js   — Node dev servers
+# 8000  Python    — Python/FastAPI dev servers
+
+# PORT COMMANDS
+ss -tulnp                    # show all listening ports and which process owns them
+ss -tulnp | grep 8000        # check if something is using port 8000
+lsof -i :8000                # list processes using port 8000
+nc -zv localhost 22          # test if SSH port is open (-z scan, -v verbose)
+nc -zv google.com 443        # test if HTTPS port is open on remote host
+nc -zv localhost 9999        # test any port (fails if nothing listening)
+nc -l 9999                   # listen on port 9999 (use in one terminal)
+nc localhost 9999            # connect to port 9999 (use in another terminal)
+# Connection succeeded = port is open
+# Connection refused = nothing listening there
+
+# HTTP REQUEST STRUCTURE
+# METHOD /path HTTP/1.1
+# Header-Name: header-value
+# (blank line)
+# body (optional)
+
+# HTTP METHODS
+# GET    — retrieve data, no body, idempotent (safe to repeat)
+# POST   — create new resource, has body, NOT idempotent
+# PUT    — update entire resource, has body, idempotent
+# PATCH  — update part of resource, has body, NOT idempotent
+# DELETE — delete resource, no body, idempotent
+
+# idempotent = calling it multiple times has same effect as calling once
+# GET is idempotent — getting same page 10 times gives same result
+# POST is NOT idempotent — posting same data 10 times creates 10 entries
+
+# HTTP STATUS CODES
+# 2xx = success
+# 200 OK              — request succeeded
+# 201 Created         — new resource was created (response to POST)
+# 204 No Content      — success but nothing to return (response to DELETE)
+
+# 3xx = redirect
+# 301 Moved Permanently — resource moved to new URL forever
+# 302 Found             — temporary redirect
+# 304 Not Modified      — cached version is still valid
+
+# 4xx = client error (your fault)
+# 400 Bad Request       — server can't understand the request
+# 401 Unauthorized      — need to log in first
+# 403 Forbidden         — logged in but not allowed to access this
+# 404 Not Found         — resource doesn't exist at this URL
+# 429 Too Many Requests — you're being rate limited
+
+# 5xx = server error (their fault)
+# 500 Internal Server Error — bug in server code
+# 502 Bad Gateway           — upstream server is down
+# 503 Service Unavailable   — server overloaded or down for maintenance
+
+# CURL — make HTTP requests from terminal
+curl https://httpbin.org/get                    # basic GET request
+curl -i https://httpbin.org/get                 # -i shows headers + body
+curl -I https://google.com                      # -I shows headers only, no body
+curl -v https://google.com                      # -v verbose, see full request and response
+                                                # > lines = what you're sending
+                                                # < lines = what you're receiving
+
+curl -X POST https://httpbin.org/post \
+     -H "Content-Type: application/json" \
+     -d '{"name":"tanishq","age":21}'           # POST with JSON body
+                                                # -X sets method
+                                                # -H sets a header
+                                                # -d sets request body
+
+curl -L https://httpbin.org/redirect/2          # -L follows redirects automatically
+curl -o output.html https://google.com          # -o saves response to file
+curl -s https://api.github.com/users/Tanishq2838  # -s silent, no progress bar
+
+# check specific status codes
+curl -I https://httpbin.org/status/200          # returns 200 OK
+curl -I https://httpbin.org/status/404          # returns 404 Not Found
+curl -I https://httpbin.org/status/500          # returns 500 Server Error
+
+# send custom headers
+curl -H "Authorization: Bearer mytoken" \
+     -H "Accept: application/json" \
+     https://httpbin.org/headers                # server echoes back headers received
+
+# save and send cookies
+curl -c /tmp/cookies.txt https://httpbin.org/cookies/set?name=tanishq  # save cookies
+curl -b /tmp/cookies.txt https://httpbin.org/cookies                   # send cookies back
+
+# check rate limit headers from GitHub API
+curl -I https://api.github.com/users/Tanishq2838
+# look for X-RateLimit-Remaining in response headers
+
+# HTTP HEADERS THAT MATTER
+# Authorization: Bearer TOKEN    — API authentication
+# Content-Type: application/json — what format the body is in
+# Accept: application/json       — what format you want back
+# User-Agent: MyApp/1.0          — who is making the request
+# Cache-Control: no-cache        — don't cache this response
+# Set-Cookie: session=abc123     — tells browser to store this cookie
+# X-RateLimit-Remaining: 99      — how many API requests you have left
+
+# HTTP IN DEVOPS — practical usage
+# check if web server is up
+curl -I https://myapp.example.com
+# 200 = up and running
+# anything else = investigate
+
+# check response time
+curl -w "%{time_total}\n" -o /dev/null -s https://google.com
+# -w writes output format after request
+# -o /dev/null discards the response body
+# shows total request time in seconds
+
+# debug API errors
+curl -v https://api.myapp.com/users
+# read response body for error message when getting 500
+
+# load balancer check — hit endpoint 5 times, see which server responds
+for i in {1..5}; do
+    curl -s https://httpbin.org/get | grep "origin"
+done
+
+# TCP CONNECTION
+# view active connections
+ss -tulnp
+
+# connection states
+# LISTEN      — server waiting for connections
+# ESTABLISHED — active connection in progress
+# TIME_WAIT   — connection is closing down
+
+# find and kill process using a specific port
+ss -tulnp | grep 8000        # find what is using port 8000
+kill -9 PID                  # kill it using the PID shown
