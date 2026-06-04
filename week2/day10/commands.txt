@@ -1,0 +1,168 @@
+# Day 10 - SSH Deep Dive, Config, SCP, Tunnelling, Security
+
+# HOW SSH WORKS — step by step when you run ssh user@server
+# 1. your machine connects to server on port 22 (TCP)
+# 2. server sends its public key — here is who I am
+# 3. your machine checks ~/.ssh/known_hosts
+#    — seen before? verify it matches
+#    — never seen? asks "are you sure? yes/no"
+# 4. if yes — server key saved to known_hosts
+# 5. authentication:
+#    password auth — server asks for password
+#    key auth — server encrypts challenge with your public key
+#               you decrypt with private key
+#               server knows only you could decrypt it
+# 6. shell session opens
+
+# WHY KEY AUTH IS BETTER THAN PASSWORD
+# passwords can be brute forced (try millions of combinations)
+# keys are mathematically impossible to brute force
+# no password to type — faster and automated
+# can be used in scripts without storing passwords
+
+# KEY PAIR
+# private key (~/.ssh/id_ed25519)   — stays on YOUR machine, never share
+# public key (~/.ssh/id_ed25519.pub) — goes on every server you want to access
+
+# SSH FILE PERMISSIONS — SSH is strict, wrong permissions = refused
+chmod 700 ~/.ssh/                  # only owner can access .ssh folder
+chmod 600 ~/.ssh/id_ed25519        # only owner can read/write private key
+chmod 644 ~/.ssh/id_ed25519.pub    # public key can be read by anyone
+chmod 600 ~/.ssh/config            # only owner can read/write config
+chmod 600 ~/.ssh/authorized_keys   # only owner can read/write authorized_keys
+
+# verify permissions
+ls -la ~/.ssh/
+
+# SSH CONFIG FILE — create shortcuts for servers
+# location: ~/.ssh/config
+# nano ~/.ssh/config
+
+# config file structure:
+# Host *                      — applies to ALL connections
+#     ServerAliveInterval 60  — send keepalive every 60 seconds
+#     ServerAliveCountMax 3   — disconnect after 3 missed keepalives
+#     AddKeysToAgent yes      — auto add key to agent on use
+#
+# Host github.com             — applies only to github.com
+#     HostName github.com
+#     User git
+#     IdentityFile ~/.ssh/id_ed25519
+#
+# Host myserver               — custom alias (ssh myserver instead of full command)
+#     HostName 192.168.1.105  — actual IP or domain
+#     User tanishq            — username to log in as
+#     Port 22                 — port (default 22)
+#     IdentityFile ~/.ssh/id_ed25519
+#     ForwardAgent yes        — forward SSH agent to remote server
+
+# with config file:
+# instead of: ssh -i ~/.ssh/id_ed25519 -p 2222 tanishq@192.168.1.105
+# you type:   ssh myserver
+
+# SSH COMMANDS
+ssh user@server                    # connect to server
+ssh -p 2222 user@server            # connect on non-standard port
+ssh -i ~/.ssh/id_work user@server  # connect using specific key
+ssh -v git@github.com              # verbose — see handshake step by step
+ssh -T git@github.com              # test connection without opening shell
+
+# SCP — securely copy files over SSH (same keys, same security)
+scp file.txt user@server:/path/              # copy local file TO remote server
+scp user@server:/path/file.txt ./            # copy remote file FROM server to local
+scp -r myfolder/ user@server:/path/         # copy entire folder (recursive)
+scp -i ~/.ssh/id_ed25519 file.txt user@server:/tmp/  # use specific key
+scp -P 2222 file.txt user@server:/tmp/      # non-standard port (capital P for scp)
+scp file.txt myserver:/tmp/                 # using SSH config alias
+
+# practice with localhost
+scp ~/somefile.txt localhost:/tmp/           # copy to yourself (practice syntax)
+ls /tmp/somefile.txt                         # verify it arrived
+
+# AUTHORIZED_KEYS — controls who can SSH into your server
+cat ~/.ssh/authorized_keys                   # view allowed public keys
+# each line = one public key = one person/machine allowed in
+# delete a line = revoke that person's access immediately
+
+# add your public key to authorized_keys (needed for localhost SSH)
+cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+
+# copy public key to remote server automatically
+ssh-copy-id user@server                      # auto adds to authorized_keys
+ssh-copy-id -i ~/.ssh/id_work.pub user@server  # use specific key
+
+# manually add public key to remote server
+cat ~/.ssh/id_ed25519.pub | ssh user@server "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+
+# KNOWN_HOSTS — tracks servers you have connected to
+cat ~/.ssh/known_hosts                       # each line = one verified server
+# mismatch warning means server key changed — could be attack or server rebuild
+
+# SSH KEY MANAGEMENT
+ssh-keygen -t ed25519 -C "work-server" -f ~/.ssh/id_work  # generate new key pair
+                                             # -f specifies filename
+                                             # creates id_work and id_work.pub
+ssh-add -l                                   # list keys loaded in SSH agent
+ssh-add ~/.ssh/id_work                       # add specific key to agent
+ssh-add -d ~/.ssh/id_work                    # remove specific key from agent
+ssh-add -D                                   # remove all keys from agent
+
+# SSH AGENT — start automatically in WSL
+eval "$(ssh-agent -s)"                       # start SSH agent
+ssh-add ~/.ssh/id_ed25519                    # add your key
+
+# make SSH start automatically in WSL — add to /etc/wsl.conf
+# [boot]
+# command = service ssh start
+
+# SSH SERVER (sshd) — the server side of SSH
+sudo apt install openssh-server -y           # install SSH server
+sudo service ssh start                       # start SSH server
+sudo service ssh status                      # check if running
+sudo systemctl restart ssh                   # restart after config changes
+ss -tulnp | grep :22                         # verify listening on port 22
+
+# SSHD_CONFIG — SSH server security settings
+sudo nano /etc/ssh/sshd_config               # edit server config
+# important settings:
+# Port 22                    change to non-standard port in production
+# PermitRootLogin no         never allow root to log in directly
+# PasswordAuthentication no  disable passwords — keys only (most important)
+# PubkeyAuthentication yes   allow key based auth
+# AllowUsers tanishq         whitelist specific users
+# MaxAuthTries 3             disconnect after 3 failed attempts
+# LoginGraceTime 30          30 seconds to authenticate then disconnect
+# X11Forwarding no           disable GUI forwarding
+
+# always restart SSH after changing sshd_config
+sudo systemctl restart ssh
+
+# SSH LOGS — see login attempts
+sudo cat /var/log/auth.log | grep ssh | tail -20          # recent SSH activity
+sudo cat /var/log/auth.log | grep "Failed password" | tail -20  # failed attempts
+sudo cat /var/log/auth.log | grep "Accepted" | tail -20   # successful logins
+sudo tail -f /var/log/auth.log | grep ssh                 # watch live
+
+# SSH TUNNELLING — access remote services securely without exposing them
+# local port forwarding — access remote service on your local machine
+ssh -L localport:targethost:targetport user@server
+# example: access remote database locally
+ssh -L 5432:localhost:5432 tanishq@myserver
+# now connect to localhost:5432 and it tunnels to remote database
+
+# remote port forwarding — expose your local service on remote server
+ssh -R remoteport:localhost:localport user@server
+# example: share your local dev server
+ssh -R 8080:localhost:8000 tanishq@myserver
+# now myserver:8080 shows your local app
+
+# dynamic port forwarding — SOCKS proxy
+ssh -D 1080 user@server
+# all traffic through port 1080 goes through the server
+
+# practice tunnel with python server
+# terminal 1: cd /tmp && python3 -m http.server 8000
+# terminal 2: ssh -L 9000:localhost:8000 localhost
+# terminal 3: curl http://localhost:9000
+# curl gets response from port 8000 through the tunnel on port 9000
