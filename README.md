@@ -28,7 +28,7 @@ Building in public — daily commits, real projects, no shortcuts.
 |-----|-------|--------|
 | Day 8  | IP addresses, DNS, networking commands | ✅ |
 | Day 9  | TCP/IP, ports, HTTP deep dive | ✅ |
-| Day 10 | SSH deep dive, keys, config | 🔄 |
+| Day 10 | SSH deep dive, keys, config | ✅ |
 | Day 11 | Firewalls, ufw, Linux networking | 🔄 |
 | Day 12 | Python + networking, requests library | 🔄 |
 | Day 13 | Project 2 — Log Analyser build day | 🔄 |
