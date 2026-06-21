@@ -1,0 +1,128 @@
+# Day 11 - Firewalls, ufw, iptables, Linux Networking Internals
+
+# WHAT A FIREWALL DOES
+# controls what network traffic is allowed in/out of your machine
+# inbound  — traffic coming INTO your machine
+# outbound — traffic going OUT of your machine
+# most server security focuses on inbound rules — that's where attacks come from
+
+# UFW — Uncomplicated Firewall (Ubuntu's simplified frontend for iptables)
+sudo ufw status                  # check current firewall status
+sudo ufw status verbose          # detailed status with default policies
+sudo ufw status numbered         # show rules with numbers (needed to delete by number)
+
+sudo ufw enable                  # turn firewall on
+sudo ufw disable                 # turn firewall off
+
+# ALLOWING TRAFFIC
+sudo ufw allow 22                # allow port 22 for BOTH tcp and udp
+sudo ufw allow 22/tcp             # allow port 22 ONLY for tcp (more precise)
+sudo ufw allow ssh                # allow by service name instead of port number
+sudo ufw allow http
+sudo ufw allow https
+sudo ufw allow 3000:3010/tcp     # allow a range of ports
+
+# allow only from a specific IP
+sudo ufw allow from 192.168.1.100
+sudo ufw allow from 192.168.1.100 to any port 22   # specific IP to specific port
+
+# DENYING / DELETING RULES
+sudo ufw deny 8080                # block a port
+sudo ufw delete allow 8080        # remove a previously allowed rule
+sudo ufw delete 3                 # delete rule by number (use ufw status numbered first)
+
+# DEFAULT POLICY — the secure baseline for any server
+sudo ufw default deny incoming    # block everything coming in by default
+sudo ufw default allow outgoing   # allow everything going out by default
+# then explicitly allow only what's needed (22, 80, 443 etc)
+# IMPORTANT: always allow SSH before enabling deny-all, or you lock yourself out
+
+# STANDARD SERVER FIREWALL SETUP
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+sudo ufw status verbose
+
+# LOGGING
+sudo ufw logging on
+sudo tail -f /var/log/ufw.log     # watch firewall activity live
+
+# TESTING FIREWALL RULES
+nc -zv localhost 22               # test allowed port — should succeed
+nc -zv localhost 8080             # test blocked port — should fail
+
+# IPTABLES — the lower level tool that ufw is built on top of
+sudo iptables -L                  # view current rules
+sudo iptables -L -v -n            # verbose + numeric (no DNS lookups, faster)
+
+# iptables chains:
+# INPUT   — incoming traffic
+# OUTPUT  — outgoing traffic
+# FORWARD — traffic being routed through (not destined for this machine)
+
+# RULE STRUCTURE
+# iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+# -A INPUT        append to INPUT chain
+# -p tcp          protocol
+# --dport 22      destination port
+# -j ACCEPT       action (ACCEPT, DROP, REJECT)
+
+# common iptables rules (read carefully before running — order matters)
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT     # allow SSH
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT     # allow HTTP
+sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT  # allow replies to outgoing requests
+sudo iptables -A INPUT -i lo -j ACCEPT                  # allow loopback (localhost) traffic
+sudo iptables -A INPUT -j DROP                          # drop everything else (run LAST)
+
+# WARNING: running DROP-all without first allowing SSH locks you out instantly
+# with no way back in except restarting the machine — always allow SSH first
+
+# VIEW AND MANAGE IPTABLES RULES
+sudo iptables -L -n --line-numbers    # see rules with line numbers
+sudo iptables -D INPUT 3               # delete rule number 3 from INPUT chain
+
+# iptables rules do NOT persist after reboot by default — must save them
+sudo apt install iptables-persistent -y
+sudo netfilter-persistent save
+
+# NETWORK INTERFACES
+ip link show          # show all network interfaces
+ip addr show          # show interfaces with their IP addresses
+# common interface names:
+# lo       — loopback (127.0.0.1, always exists)
+# eth0     — first ethernet interface
+# wlan0    — wifi interface
+# docker0  — created automatically when Docker is installed
+
+# ROUTING TABLE
+ip route show
+# default via 172.x.x.x dev eth0
+# means: send anything not on my local network to this gateway
+
+# NETWORK NAMESPACES — foundation for Docker/Kubernetes networking
+ip netns list          # list network namespaces (may be empty, that's normal)
+# each Docker container gets its own isolated network namespace
+# same concept scales up to every pod in Kubernetes
+
+# CROSS-CHECKING LISTENING SERVICES AGAINST FIREWALL
+ss -tulnp              # what's actually listening on this machine
+sudo ufw status         # what's allowed through the firewall
+# if something is listening but NOT in ufw allow list —
+# it's only reachable locally, not exposed to outside traffic
+# investigate any mismatch — unexpected exposed services are a security risk
+
+# FULL SERVER HARDENING CHECKLIST (Day 10 + Day 11 combined)
+sudo ufw status verbose                                          # 1. check firewall
+sudo ufw default deny incoming                                   # 2. set default deny
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp                                             # 3. allow only what's needed
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable                                                   # 4. enable firewall
+sudo ufw status numbered                                         # 5. verify
+sudo cat /etc/ssh/sshd_config | grep -E "PermitRootLogin|PasswordAuthentication"  # 6. check SSH config
+ss -tulnp                                                         # 7. check listening ports
+# 8. cross check — anything listening that isn't in ufw allow list? investigate it
