@@ -1,0 +1,142 @@
+# Day 12 - Python + Networking (requests library)
+
+# SETUP
+pip3 install requests                  # install the requests library (not built-in)
+python3 -c "import requests; print(requests.__version__)"   # verify installation
+
+# BASIC GET REQUEST
+import requests
+response = requests.get(url)           # sends HTTP GET, same as curl url
+
+# THE RESPONSE OBJECT — everything the server sent back
+response.status_code        # HTTP status code as an integer (200, 404, 500...)
+response.ok                 # True if status is 200-399, False otherwise
+response.headers            # dictionary-like object of response headers
+response.headers["Content-Type"]   # access a specific header by name
+response.text               # raw response body as a string
+response.json()             # parses JSON response body into a Python dictionary
+
+# POST REQUEST WITH JSON
+data = {"name": "Tanishq", "role": "DevOps learner"}
+response = requests.post(url, json=data)
+# json= automatically converts dict to JSON text
+# and sets Content-Type: application/json header
+
+# POST REQUEST WITH FORM DATA
+form_data = {"username": "tanishq"}
+response = requests.post(url, data=form_data)
+# data= sends as form-urlencoded instead of JSON
+
+# PUT AND DELETE REQUESTS
+response = requests.put(url, json={"status": "updated"})
+response = requests.delete(url)
+
+# SAFELY CHECKING RESPONSE BEFORE PARSING JSON
+if response.status_code == 200:
+    result = response.json()
+else:
+    print("Request failed, response may not be valid JSON")
+# never call .json() blindly — non-JSON responses crash the script
+
+# CUSTOM HEADERS
+headers = {
+    "User-Agent": "MyBot/1.0",
+    "Accept": "application/json",
+    "X-Custom-Header": "custom-value"
+}
+response = requests.get(url, headers=headers)
+# headers= attaches custom headers to the outgoing request
+# same as curl -H "Header: value" url
+
+# BEARER TOKEN AUTHENTICATION
+auth_headers = {"Authorization": "Bearer YOUR_TOKEN"}
+response = requests.get(url, headers=auth_headers)
+# standard pattern used by GitHub, Stripe, AWS, most modern APIs
+
+# BASIC AUTH (username/password)
+response = requests.get(url, auth=("username", "password"))
+# requests automatically encodes this correctly per HTTP spec
+
+# ERROR HANDLING — the most important pattern of the day
+def safe_request(url, timeout=5):
+    try:
+        response = requests.get(url, timeout=timeout)
+        response.raise_for_status()    # raises exception for 4xx/5xx status codes
+        return response
+    except requests.exceptions.Timeout:
+        print(f"Request to {url} timed out after {timeout}s")
+        return None
+    except requests.exceptions.ConnectionError:
+        print(f"Could not connect to {url}")
+        return None
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP error for {url} - {e}")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"Unexpected error for {url} - {e}")
+        return None
+
+# WHY timeout= MATTERS
+# without timeout=, a hanging server freezes your script forever
+# always set a timeout on every request in production code
+
+# raise_for_status()
+# automatically raises an exception if status code is 400 or higher
+# cleaner than manually writing: if response.status_code >= 400
+
+# EXCEPTION TYPES — each one catches a different failure
+# Timeout            — server took too long to respond
+# ConnectionError    — could not reach server at all (DNS fail, server down, no internet)
+# HTTPError          — server responded but with error status (caught via raise_for_status)
+# RequestException   — catch-all for anything else unexpected
+
+# LOGGING PATTERN — Python equivalent of bash's tee -a
+from datetime import datetime
+
+def log(level, message):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_line = f"[{timestamp}] [{level}] {message}"
+    print(log_line)                          # print to screen
+    with open("logfile.log", "a") as f:       # append mode, same as bash >>
+        f.write(log_line + "\n")
+
+# with open(file, "a") as f:
+# "a" = append mode (same as >> in bash)
+# "w" = write mode (overwrites, same as > in bash)
+# "r" = read mode (default)
+# with...as automatically closes the file when done
+
+# MEASURING REQUEST TIME
+import time
+start_time = time.time()
+response = requests.get(url)
+elapsed = round((time.time() - start_time) * 1000, 2)   # milliseconds
+
+# LISTS OF DICTIONARIES — structured way to store related data
+SERVICES = [
+    {"name": "GitHub API", "url": "https://api.github.com"},
+    {"name": "Google", "url": "https://google.com"},
+]
+for service in SERVICES:
+    print(service["name"], service["url"])
+
+# if __name__ == "__main__":
+# standard Python convention
+# means: only run this code if script is executed directly,
+# not if it's imported by another script
+
+# RUNNING SCRIPTS
+python3 script.py
+
+# CRON INTEGRATION — run Python script automatically every 15 minutes
+# crontab -e
+# */15 * * * * /usr/bin/python3 /full/path/to/health_checker.py >> /full/path/to/cron_output.log 2>&1
+# always use full paths in cron, same rule as Day 7
+
+# TEST SERVICES USED TODAY (httpbin.org was down, so these were used instead)
+# https://api.github.com           — GitHub's public API, very reliable
+# https://postman-echo.com/get     — echoes back whatever you send, good for testing
+# https://postman-echo.com/post    — echoes POST body back under "json" key
+# https://postman-echo.com/headers — echoes back headers you sent
+# https://postman-echo.com/basic-auth — test endpoint for basic auth (user: postman, pass: password)
+# https://postman-echo.com/delay/10   — intentionally slow endpoint, good for testing timeouts
