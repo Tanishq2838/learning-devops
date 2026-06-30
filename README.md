@@ -31,7 +31,7 @@ Building in public — daily commits, real projects, no shortcuts.
 | Day 10 | SSH deep dive, keys, config | ✅ |
 | Day 11 | Firewalls, ufw, Linux networking | ✅ |
 | Day 12 | Python + networking, requests library | ✅ |
-| Day 13 | Project 2 — Log Analyser build day | 🔄 |
+| Day 13 | Project 2 — Log Analyser build day | ✅ |
 | Day 14 | Week 2 review + polish | 🔄 |
 
 ## Projects
