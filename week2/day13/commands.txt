@@ -1,0 +1,119 @@
+# Day 13 - Project 2: Log Analyser (Python regex + file parsing)
+
+# SETUP
+mkdir -p ~/devops-practice/week2/day13
+cd ~/devops-practice/week2/day13
+nano generate_logs.py
+
+# IMPORTS
+import random
+from datetime import datetime, timedelta
+import re
+import json
+from collections import Counter
+# random        — pick random IPs/paths/status codes for fake log generation
+# datetime       — build timestamp objects
+# timedelta      — increment time between fake log entries
+# re             — regex engine, used to parse log lines
+# json           — convert Python dict to JSON output
+# Counter        — dict subclass built for frequency counting, has .most_common(n)
+
+# APACHE LOG FORMAT (what we're generating + parsing)
+# 192.168.1.10 - - [25/Jun/2026:14:32:11 +0530] "GET /index.html HTTP/1.1" 200 532
+# IP - - [timestamp] "METHOD PATH HTTP/1.1" STATUS_CODE SIZE_BYTES
+
+# GENERATING FAKE DATA
+ips = ["192.168.1.10", "10.0.0.5", ...]
+methods = ["GET", "POST", "PUT", "DELETE"]
+status_codes = [200, 200, 200, 201, 301, 404, 404, 500]
+# repeating values in a list = weighted probability for random.choice()
+# more 200s than 500s = realistic traffic distribution
+
+random.choice(my_list)        # picks one random item from a list
+random.randint(a, b)          # random integer between a and b, inclusive
+
+# TIMESTAMP FORMATTING
+timestamp.strftime("%d/%b/%Y:%H:%M:%S +0530")
+# %d = day, %b = abbreviated month, %Y = year, %H:%M:%S = time
+# .strftime() = converts a datetime object into a formatted string
+
+# FILE MODES (recap from Day 12, used heavily today)
+# "w" = write/overwrite (like bash >)
+# "a" = append (like bash >>)
+# "r" = read only
+
+with open(filename, "w") as f:
+    f.write(line + "\n")
+# generates the main 200 valid log lines into server.log
+
+with open(filename, "a") as f:
+    f.write(malformed_line)
+# appends 4 deliberately broken lines onto the end, to simulate messy real-world logs
+
+# RUN THE GENERATOR
+python3 generate_logs.py
+cat server.log                # visually confirm the file looks right
+
+# REGEX — THE CORE OF TODAY'S LESSON
+import re
+LOG_PATTERN = re.compile(r'(\d+\.\d+\.\d+\.\d+) - - \[(.*?)\] "(\w+) (.*?) HTTP/1.1" (\d+) (\d+)')
+
+# r'...'        raw string — backslashes passed through untouched, required for regex
+# \d            any digit                  \d+   one or more digits
+# \.            literal dot (escaped, since . alone means "any character")
+# ( )           capture group — extracts the matched text afterward via .group(n)
+# .*?           non-greedy "any characters" — stops at the FIRST match, not the last
+# \[ \]         literal square brackets (escaped, since [ ] are special in regex)
+# \w+           one or more "word characters" (letters/digits/underscore)
+
+re.compile(pattern)           # pre-compiles regex once, more efficient for repeated use
+LOG_PATTERN.match(line)       # tries to match pattern from the START of the string
+                               # returns a Match object if successful, None if not
+match.group(1)                # extract capture group by position (1-indexed)
+match.group(0)                # the entire matched string (not used today, but exists)
+
+# READING A FILE LINE BY LINE
+with open(filename, "r") as f:
+    for line in f:
+        line = line.strip()   # removes trailing \n and whitespace
+        if not line:
+            continue           # skip blank lines without processing them
+
+# COUNTER — AUTOMATIC FREQUENCY COUNTING
+from collections import Counter
+ip_counter = Counter()
+ip_counter[ip] += 1                  # auto-creates key at 0 if missing, then increments
+ip_counter.most_common(5)            # returns top 5 (key, count) tuples, sorted descending
+dict(ip_counter)                     # converts Counter to a plain dict (for JSON output)
+
+# TUPLE UNPACKING IN A FOR LOOP
+for ip, count in ip_counter.most_common(5):
+    print(ip, count)
+# each item from .most_common() is a (key, count) tuple, unpacked into two variables
+
+# SORTING DICT ITEMS
+sorted(status_counter.items())
+# .items() = list of (key, value) pairs from a dict
+# sorted() = orders them, here alphabetically/numerically by status code string
+
+# JSON OUTPUT
+json.dump(report, f, indent=4)
+# json.dump()   writes directly to a file object (no 's')
+# json.dumps()  returns a JSON string instead (has 's') — NOT used today
+# indent=4      pretty-prints with 4-space indentation, human-readable
+
+# RUN THE ANALYSER
+python3 log_analyser.py
+cat log_report.json
+
+# DEBUGGING A CRASH (Counter misuse)
+# error: AttributeError: 'int' object has no attribute 'items'
+# cause: wrote `status_counter += 1` instead of `status_counter[status] += 1`
+# lesson: Counter needs a KEY to increment — incrementing the whole object directly
+#         makes Python try to merge it with another Counter/dict, which fails
+
+# GIT WORKFLOW
+git add .
+git commit -m "Day 13: Log Analyser - regex parsing, malformed line handling, JSON report"
+git push origin main
+git log origin/main..HEAD     # confirms local commits actually reached GitHub (empty = synced)
